@@ -1,5 +1,5 @@
 use std::convert::From;
-use std::ops::{Add, Div, Mul, MulAssign, Shl, Sub};
+use std::ops::{Add, Div, Mul, MulAssign, Sub};
 
 pub fn clamp_f(min: f32, max: f32, val: f32) -> f32 {
     min.max(val.min(max))
@@ -17,10 +17,10 @@ pub struct Mat4 {
     pub w4: [f32; 4],
 }
 
-impl Mul<Vec4> for Mat4 {
-    type Output = Vec4;
+impl Mul<Vec4<f32>> for Mat4 {
+    type Output = Vec4<f32>;
 
-    fn mul(self, rhs: Vec4) -> Vec4 {
+    fn mul(self, rhs: Vec4<f32>) -> Vec4<f32> {
         let basis_x = vec4(
             rhs.x * self.x4[0],
             rhs.x * self.y4[0],
@@ -77,18 +77,18 @@ impl Mul for Mat4 {
 }
 
 #[derive(Debug, Copy, Clone, Default)]
-pub struct Vec4 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub w: f32,
+pub struct Vec4<T> {
+    pub x: T,
+    pub y: T,
+    pub z: T,
+    pub w: T,
 }
 
-pub const fn vec4(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
+pub const fn vec4<T>(x: T, y: T, z: T, w: T) -> Vec4<T> {
     Vec4 { x, y, z, w }
 }
 
-pub const fn vec4_from_3(vec3: Vec3, w: f32) -> Vec4 {
+pub fn vec4_from_3<T>(vec3: Vec3<T>, w: T) -> Vec4<T> {
     Vec4 {
         x: vec3.x,
         y: vec3.y,
@@ -97,10 +97,12 @@ pub const fn vec4_from_3(vec3: Vec3, w: f32) -> Vec4 {
     }
 }
 
-impl Add for Vec4 {
+impl<T> Add for Vec4<T>
+where
+    T: Add<Output = T>,
+{
     type Output = Self;
-
-    fn add(self, rhs: Vec4) -> Self {
+    fn add(self, rhs: Vec4<T>) -> Self::Output {
         vec4(
             self.x + rhs.x,
             self.y + rhs.y,
@@ -110,9 +112,12 @@ impl Add for Vec4 {
     }
 }
 
-impl Sub for Vec4 {
+impl<T> Sub for Vec4<T>
+where
+    T: Sub<Output = T>,
+{
     type Output = Self;
-    fn sub(self, rhs: Vec4) -> Self {
+    fn sub(self, rhs: Vec4<T>) -> Self::Output {
         vec4(
             self.x - rhs.x,
             self.y - rhs.y,
@@ -122,150 +127,108 @@ impl Sub for Vec4 {
     }
 }
 
-impl Div<f32> for Vec4 {
+impl<T> Div<T> for Vec4<T>
+where
+    T: Div<Output = T> + Copy,
+{
     type Output = Self;
-
-    fn div(self, rhs: f32) -> Self {
+    fn div(self, rhs: T) -> Self {
         vec4(self.x / rhs, self.y / rhs, self.z / rhs, self.w / rhs)
     }
 }
 
-impl Mul<Mat4> for Vec4 {
+impl Mul<Mat4> for Vec4<f32> {
     type Output = Self;
     fn mul(self, rhs: Mat4) -> Self {
         rhs * self
     }
 }
 
-impl MulAssign<Mat4> for Vec4 {
+impl MulAssign<Mat4> for Vec4<f32> {
     fn mul_assign(&mut self, rhs: Mat4) {
         *self = rhs * *self;
     }
 }
 
 #[derive(Debug, Copy, Clone, Default)]
-pub struct Vec3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+pub struct Vec3<T> {
+    pub x: T,
+    pub y: T,
+    pub z: T,
 }
 
-pub const fn vec3(x: f32, y: f32, z: f32) -> Vec3 {
+pub const fn vec3<T>(x: T, y: T, z: T) -> Vec3<T> {
     Vec3 { x, y, z }
 }
 
-impl Add for Vec3 {
+impl<T> Add for Vec3<T>
+where
+    T: Add<Output = T>,
+{
     type Output = Self;
-
-    fn add(self, rhs: Vec3) -> Self {
+    fn add(self, rhs: Vec3<T>) -> Self {
         vec3(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
 
-impl Sub for Vec3 {
+impl<T> Sub for Vec3<T>
+where
+    T: Sub<Output = T>,
+{
     type Output = Self;
-    fn sub(self, rhs: Vec3) -> Self {
+    fn sub(self, rhs: Vec3<T>) -> Self {
         vec3(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
     }
 }
 
-impl Mul<f32> for Vec3 {
+impl<T> Mul<T> for Vec3<T>
+where
+    T: Mul<Output = T> + Copy,
+{
     type Output = Self;
-    fn mul(self, rhs: f32) -> Self {
+    fn mul(self, rhs: T) -> Self {
         vec3(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
 
 #[derive(Debug, Copy, Clone, Default)]
-pub struct Uvec2 {
-    pub x: u32,
-    pub y: u32,
+pub struct Vec2<T> {
+    pub x: T,
+    pub y: T,
 }
 
-pub fn uvec2(x: u32, y: u32) -> Uvec2 {
-    Uvec2 { x, y }
-}
-
-#[derive(Debug, Copy, Clone, Default)]
-pub struct Ivec2 {
-    pub x: i32,
-    pub y: i32,
-}
-
-pub fn ivec2(x: i32, y: i32) -> Ivec2 {
-    Ivec2 { x, y }
-}
-
-impl Sub for Ivec2 {
-    type Output = Self;
-    fn sub(self, rhs: Ivec2) -> Self {
-        ivec2(self.x - rhs.x, self.y - rhs.y)
-    }
-}
-
-impl Add for Ivec2 {
-    type Output = Self;
-    fn add(self, rhs: Ivec2) -> Self {
-        ivec2(self.x + rhs.x, self.y + rhs.y)
-    }
-}
-
-impl Shl<u8> for Ivec2 {
-    type Output = Self;
-    fn shl(self, rhs: u8) -> Self {
-        ivec2(self.x << rhs, self.y << rhs)
-    }
-}
-
-impl From<Vec2> for Ivec2 {
-    fn from(f: Vec2) -> Self {
-        ivec2(f.x as i32, f.y as i32)
-    }
-}
-
-impl From<Vec3> for Ivec2 {
-    fn from(f: Vec3) -> Self {
-        ivec2(f.x as i32, f.y as i32)
-    }
-}
-
-#[derive(Debug, Copy, Clone, Default)]
-// a vector of 'long' ints (i64)
-pub struct Lvec2 {
-    pub x: i64,
-    pub y: i64,
-}
-
-pub fn lvec2(x: i64, y: i64) -> Lvec2 {
-    Lvec2 { x, y }
-}
-
-#[derive(Debug, Copy, Clone, Default)]
-pub struct Vec2 {
-    pub x: f32,
-    pub y: f32,
-}
-
-pub fn vec2(x: f32, y: f32) -> Vec2 {
+pub fn vec2<T>(x: T, y: T) -> Vec2<T> {
     Vec2 { x, y }
 }
 
-impl Sub for Vec2 {
+impl<T> Sub for Vec2<T>
+where
+    T: Sub<Output = T>,
+{
     type Output = Self;
-    fn sub(self, rhs: Vec2) -> Self {
+    fn sub(self, rhs: Vec2<T>) -> Self {
         vec2(self.x - rhs.x, self.y - rhs.y)
     }
 }
 
-impl Mul<f32> for Vec2 {
+impl<T> Mul<T> for Vec2<T>
+where
+    T: Mul<Output = T> + Copy,
+{
     type Output = Self;
-    fn mul(self, rhs: f32) -> Self {
+    fn mul(self, rhs: T) -> Self {
         vec2(self.x * rhs, self.y * rhs)
     }
 }
 
-impl From<Vec3> for Vec2 {
-    fn from(f: Vec3) -> Self {
+impl<T> From<Vec3<T>> for Vec2<T> {
+    fn from(f: Vec3<T>) -> Self {
         vec2(f.x, f.y)
+    }
+}
+
+impl From<Vec2<f32>> for Vec2<i32> {
+    fn from(f: Vec2<f32>) -> Self {
+        vec2::<i32>(f.x as i32, f.y as i32)
     }
 }

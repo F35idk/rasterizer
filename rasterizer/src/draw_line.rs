@@ -4,8 +4,8 @@ use super::math::*; // TODO: don't
 // no overflow. should be slower, but doesn't impose any limits on
 // the size of the input coordinates (given that they're f32s)
 pub fn draw_line_clipped_i64(
-    v1: Ivec2,
-    v2: Ivec2,
+    v1: Vec2<i32>,
+    v2: Vec2<i32>,
     canvas: &mut [u32],
     canvas_width: usize,
     canvas_height: usize,
@@ -14,8 +14,8 @@ pub fn draw_line_clipped_i64(
     debug_assert!(canvas_height % 2 == 0 && canvas_width % 2 == 0);
 
     // use 64 bit ints to avoid overflow
-    let mut v1 = lvec2(v1.x as i64, v1.y as i64);
-    let mut v2 = lvec2(v2.x as i64, v2.y as i64);
+    let mut v1 = vec2::<i64>(v1.x as i64, v1.y as i64);
+    let mut v2 = vec2::<i64>(v2.x as i64, v2.y as i64);
 
     // whether line is longer vertically than horizontally
     let is_steep = (v2.y - v1.y).abs() > (v2.x - v1.x).abs();
@@ -58,7 +58,7 @@ pub fn draw_line_clipped_i64(
             // line and canvas edge (without floating point arithmetic)
             let new_y = (end.y - start.y) * (0 - start.x) / (end.x - start.x) + start.y;
 
-            start = lvec2(new_x, new_y);
+            start = vec2::<i64>(new_x, new_y);
         }
 
         // NOTE: this assumes the canvas dimensions are even,
@@ -78,7 +78,7 @@ pub fn draw_line_clipped_i64(
             let new_y = (!start_y_sign_bit * y_max).abs();
             let new_x = (end.x - start.x) * (new_y - start.y) / (end.y - start.y) + start.x;
 
-            start = lvec2(new_x, new_y);
+            start = vec2::<i64>(new_x, new_y);
         }
 
         // if 'end.y' is greater than y_max or less than
@@ -87,7 +87,7 @@ pub fn draw_line_clipped_i64(
             let new_y = (!end_y_sign_bit * y_max).abs();
             let new_x = (start.x - end.x) * (new_y - end.y) / (start.y - end.y) + end.x;
 
-            end = lvec2(new_x, new_y);
+            end = vec2::<i64>(new_x, new_y);
         }
     }
 
@@ -124,8 +124,8 @@ pub fn draw_line_clipped_i64(
 // draws lines between vertices 'v1' and 'v2' on 'canvas' using
 // bresenham's while clipping to the boundaries of 'canvas'
 pub fn _draw_line_clipped(
-    mut v1: Ivec2,
-    mut v2: Ivec2,
+    mut v1: Vec2<i32>,
+    mut v2: Vec2<i32>,
     canvas: &mut [u32],
     canvas_width: usize,
     canvas_height: usize,
@@ -174,7 +174,7 @@ pub fn _draw_line_clipped(
             // line and canvas edge (without floating point arithmetic)
             let new_y = (end.y - start.y) * (0 - start.x) / (end.x - start.x) + start.y;
 
-            start = ivec2(new_x, new_y);
+            start = vec2::<i32>(new_x, new_y);
         }
 
         // NOTE: this assumes the canvas dimensions are even,
@@ -194,7 +194,7 @@ pub fn _draw_line_clipped(
             let new_y = (!start_y_sign_bit * y_max).abs();
             let new_x = (end.x - start.x) * (new_y - start.y) / (end.y - start.y) + start.x;
 
-            start = ivec2(new_x, new_y);
+            start = vec2::<i32>(new_x, new_y);
         }
 
         // if 'end.y' is greater than y_max or less than
@@ -203,7 +203,7 @@ pub fn _draw_line_clipped(
             let new_y = (!end_y_sign_bit * y_max).abs();
             let new_x = (start.x - end.x) * (new_y - end.y) / (start.y - end.y) + end.x;
 
-            end = ivec2(new_x, new_y);
+            end = vec2::<i32>(new_x, new_y);
         }
     }
 

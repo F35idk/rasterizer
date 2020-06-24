@@ -1,29 +1,27 @@
+use std::ops::{Mul, Sub};
+
 use super::math::*; // TODO: don't
 
 #[inline]
 // returns a positive integer if the point 'v0' is
 // to the right of the vector 'v1v2' in raster space
-fn edge_f(v0: Vec2, v1: Vec2, v1v2: Vec2) -> f32 {
+fn edge<T>(v0: Vec2<T>, v1: Vec2<T>, v1v2: Vec2<T>) -> T
+where
+    T: Mul<Output = T> + Sub<Output = T>,
+{
     let v1v0 = v0 - v1;
     // swap x and y when computing the determinant of the matrix [v1v0, v1v2]
     // to compensate for the fact that up is negative in raster space
     v1v0.y * v1v2.x - v1v0.x * v1v2.y
 }
 
-#[inline]
-fn edge_i(v0: Ivec2, v1: Ivec2, v1v2: Ivec2) -> i32 {
-    let v1v0 = v0 - v1;
-
-    (v1v0.y * v1v2.x) - (v1v0.x * v1v2.y)
-}
-
 pub fn rasterize_tri_fixed_point(
-    v1: Vec3,
-    v1_color: Vec4,
-    v2: Vec3,
-    v2_color: Vec4,
-    v3: Vec3,
-    v3_color: Vec4,
+    v1: Vec3<f32>,
+    v1_color: Vec4<f32>,
+    v2: Vec3<f32>,
+    v2_color: Vec4<f32>,
+    v3: Vec3<f32>,
+    v3_color: Vec4<f32>,
     canvas: &mut [u32],
     depth_buffer: &mut [f32],
     canvas_width: usize,
@@ -34,14 +32,14 @@ pub fn rasterize_tri_fixed_point(
     // too large (and may overflow later) before passing them to this function
 
     // get edge vectors in fixed point (28.4 format)
-    let v3v2_i = Ivec2::from(Vec2::from(v2) * 16.0) - Ivec2::from(Vec2::from(v3) * 16.0);
-    let v2v1_i = Ivec2::from(Vec2::from(v1) * 16.0) - Ivec2::from(Vec2::from(v2) * 16.0);
-    let v1v3_i = Ivec2::from(Vec2::from(v3) * 16.0) - Ivec2::from(Vec2::from(v1) * 16.0);
+    let v3v2_i = Vec2::<i32>::from(Vec2::from(v2) * 16.0) - Vec2::from(Vec2::from(v3) * 16.0);
+    let v2v1_i = Vec2::<i32>::from(Vec2::from(v1) * 16.0) - Vec2::from(Vec2::from(v2) * 16.0);
+    let v1v3_i = Vec2::<i32>::from(Vec2::from(v3) * 16.0) - Vec2::from(Vec2::from(v1) * 16.0);
 
     // convert vertices to fixed point
-    let v1_i = Ivec2::from(Vec2::from(v1) * 16.0);
-    let v2_i = Ivec2::from(Vec2::from(v2) * 16.0);
-    let v3_i = Ivec2::from(Vec2::from(v3) * 16.0);
+    let v1_i = Vec2::<i32>::from(Vec2::from(v1) * 16.0);
+    let v2_i = Vec2::<i32>::from(Vec2::from(v2) * 16.0);
+    let v3_i = Vec2::<i32>::from(Vec2::from(v3) * 16.0);
 
     // compute twice the (signed) area of the triangle v1v2v3
     let area_tri = (v3v2_i.x * v2v1_i.y - v3v2_i.y * v2v1_i.x) >> 4;
@@ -74,12 +72,12 @@ pub fn rasterize_tri_fixed_point(
     ) + 7)
         >> 4;
 
-    let start_pixel = ivec2((x_min << 4) + 8, (y_min << 4) + 8); // add 0.5 (for pixel center)
+    let start_pixel = vec2::<i32>((x_min << 4) + 8, (y_min << 4) + 8); // add 0.5 (for pixel center)
 
     // calculate initial barycentric coordinates/subtriangle areas for each corner vertex
-    let mut area1_initial = (edge_i(start_pixel, v2_i, v2v1_i) >> 4) - 1;
-    let mut area2_initial = (edge_i(start_pixel, v3_i, v3v2_i) >> 4) - 1;
-    let mut area3_initial = (edge_i(start_pixel, v1_i, v1v3_i) >> 4) - 1;
+    let mut area1_initial = (edge(start_pixel, v2_i, v2v1_i) >> 4) - 1;
+    let mut area2_initial = (edge(start_pixel, v3_i, v3v2_i) >> 4) - 1;
+    let mut area3_initial = (edge(start_pixel, v1_i, v1v3_i) >> 4) - 1;
 
     // precompute the increase in barycentric coordinate values per
     // pixel moved down (y_step) and per pixel moved right (x_step)
@@ -181,12 +179,12 @@ pub fn rasterize_tri_fixed_point(
 }
 
 pub fn _rasterize_tri_f(
-    v1: Vec3,
-    v1_color: Vec4,
-    v2: Vec3,
-    v2_color: Vec4,
-    v3: Vec3,
-    v3_color: Vec4,
+    v1: Vec3<f32>,
+    v1_color: Vec4<f32>,
+    v2: Vec3<f32>,
+    v2_color: Vec4<f32>,
+    v3: Vec3<f32>,
+    v3_color: Vec4<f32>,
     canvas: &mut [u32],
     depth_buffer: &mut [f32],
     canvas_width: usize,
@@ -208,9 +206,9 @@ pub fn _rasterize_tri_f(
     let start_pixel = vec2(x_min.floor() + 0.5, y_min.floor() + 0.5);
 
     // calculate initial barycentric coordinates/subtriangle areas for each corner vertex
-    let mut area1_initial = edge_f(start_pixel, Vec2::from(v2), Vec2::from(v2v1));
-    let mut area2_initial = edge_f(start_pixel, Vec2::from(v3), Vec2::from(v3v2));
-    let mut area3_initial = edge_f(start_pixel, Vec2::from(v1), Vec2::from(v1v3));
+    let mut area1_initial = edge(start_pixel, Vec2::from(v2), Vec2::from(v2v1));
+    let mut area2_initial = edge(start_pixel, Vec2::from(v3), Vec2::from(v3v2));
+    let mut area3_initial = edge(start_pixel, Vec2::from(v1), Vec2::from(v1v3));
 
     // precompute the increase in barycentric coordinate values per
     // pixel moved down (y_step) and per pixel moved right (x_step)

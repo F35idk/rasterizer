@@ -50,14 +50,14 @@ static CUBE_VERTICES: [Vertex; 36] = [
 
 struct ModelViewTransforms {
     view_mat: math::Mat4,
-    cam_pos: math::Vec3,
+    cam_pos: math::Vec3<f32>,
     cam_rotation_x: f32,
     cam_rotation_y: f32,
     cam_rotation_z: f32,
 }
 
 impl ModelViewTransforms {
-    fn new(pos: math::Vec3, rotation_x: f32, rotation_y: f32, rotation_z: f32) -> Self {
+    fn new(pos: math::Vec3<f32>, rotation_x: f32, rotation_y: f32, rotation_z: f32) -> Self {
         let translate_mat = math::Mat4 {
             x4: [1.0, 0.0, 0.0, -pos.x],
             y4: [0.0, 1.0, 0.0, -pos.y],
@@ -106,7 +106,7 @@ impl ModelViewTransforms {
         }
     }
 
-    fn update(&mut self, pos: math::Vec3, rotation_x: f32, rotation_y: f32, rotation_z: f32) {
+    fn update(&mut self, pos: math::Vec3<f32>, rotation_x: f32, rotation_y: f32, rotation_z: f32) {
         let pos_delta = pos - self.cam_pos;
         let rotation_x_delta = rotation_x - self.cam_rotation_x;
         let rotation_y_delta = rotation_y - self.cam_rotation_y;
